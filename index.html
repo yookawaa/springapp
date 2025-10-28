@@ -58,7 +58,7 @@
                     size="20"
                     class="mr-2"
                   ></v-progress-circular>
-                  処理中...
+                  認証中...
                 </template>
               </v-btn>
 
@@ -82,18 +82,6 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
-
-          <!-- 全画面ローディング表示 -->
-          <v-dialog v-model="loading" persistent width="100">
-            <v-card class="pa-6 text-center">
-              <v-progress-circular
-                indeterminate
-                color="primary"
-                size="48"
-              ></v-progress-circular>
-              <div class="mt-3">ログイン処理中です...</div>
-            </v-card>
-          </v-dialog>
         </v-container>
       </v-app>
     </div>
@@ -104,24 +92,24 @@
 
       const vuetify = createVuetify();
 
+      // Vue3アプリケーション
       const app = createApp({
         setup() {
           const userid = ref('');
           const password = ref('');
           const dialog = ref(false);
           const errorMessage = ref('');
-          const loading = ref(false); // ←追加
+          const loading = ref(false);
 
           // ログイン処理
           const login = async () => {
             if (!userid.value || !password.value) {
-              errorMessage.value =
-                'ユーザーIDとパスワードを入力してください。';
+              errorMessage.value = 'ユーザーIDとパスワードを入力してください。';
               dialog.value = true;
               return;
             }
 
-            loading.value = true; // ← 開始時にON
+            loading.value = true; // ローディングON
 
             try {
               const response = await axios.post('https://m3h-ookawa-containerapps-vnet.gentlerock-32477362.japaneast.azurecontainerapps.io/api/LOGINUSER', {
@@ -135,10 +123,11 @@
                 response.status === 200 &&
                 response.data?.result === 'Succeeded'
               ) {
-                // 成功 → 次画面へ
-                window.location.href = 'home.html';
+                // 待機してhome.htmlへ遷移
+                setTimeout(() => {
+                  window.location.href = 'home.html';
+                }, 1000);
               } else {
-                // 失敗時
                 errorMessage.value =
                   response.data?.message || 'ログインに失敗しました。';
                 dialog.value = true;
@@ -149,7 +138,7 @@
                 'ログインエラー：' + (err.response?.data || err.message);
               dialog.value = true;
             } finally {
-              loading.value = false; // ← 終了時にOFF（必ず実行）
+              loading.value = false; // ローディングOFF
             }
           };
 

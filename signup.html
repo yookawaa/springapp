@@ -102,18 +102,6 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
-
-          <!-- 全画面ローディング表示 -->
-          <v-dialog v-model="loading" persistent width="100">
-            <v-card class="pa-6 text-center">
-              <v-progress-circular
-                indeterminate
-                color="primary"
-                size="48"
-              ></v-progress-circular>
-              <div class="mt-3">登録処理中です...</div>
-            </v-card>
-          </v-dialog>
         </v-container>
       </v-app>
     </div>
@@ -132,7 +120,7 @@
           const errorMessage = ref('');
           const dialog = ref(false);
           const successDialog = ref(false);
-          const loading = ref(false); // ← 追加
+          const loading = ref(false);
 
           // サインアップ処理
           const signup = async () => {
@@ -160,10 +148,16 @@
                 Name: displayName.value,
               });
 
-              // 成功時レスポンスをメッセージに表示
-              if (response.status === 200) {
-                message.value = response.data.message || response.data;
+              console.log('レスポンス:', response.data);
+
+              if (response.status === 200 && response.data.result === 'Succeeded') {
+                message.value = response.data.message || 'ユーザー登録が完了しました。';
                 successDialog.value = true;
+
+                // 待機してログイン画面へ遷移
+                setTimeout(() => {
+                  window.location.href = 'index.html';
+                }, 1000);
               } else {
                 errorMessage.value =
                   response.data.message || '登録に失敗しました。';
@@ -204,4 +198,3 @@
     </script>
   </body>
 </html>
-<!DOCTYPE html>
