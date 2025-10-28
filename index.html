@@ -101,46 +101,71 @@
           const errorMessage = ref('');
           const loading = ref(false);
 
-          // ログイン処理
-          const login = async () => {
-            if (!userid.value || !password.value) {
-              errorMessage.value = 'ユーザーIDとパスワードを入力してください。';
-              dialog.value = true;
-              return;
-            }
+        // ログイン処理
+        const login = async () => {
+        if (!userid.value || !password.value) {
+            errorMessage.value = 'ユーザーIDとパスワードを入力してください。';
+            dialog.value = true;
+            return;
+        }
 
-            loading.value = true; // ローディングON
+        loading.value = true; // ローディングON
 
-            try {
-              const response = await axios.post('https://m3h-ookawa-containerapps-vnet.gentlerock-32477362.japaneast.azurecontainerapps.io/api/LOGINUSER', {
+        try {
+            // LOGINUSER API呼び出し
+            const response = await axios.post(
+            'https://m3h-ookawa-containerapps-vnet.gentlerock-32477362.japaneast.azurecontainerapps.io/api/LOGINUSER',
+            {
                 ID: userid.value,
                 Password: password.value,
-              });
-
-              console.log('レスポンス:', response.data);
-
-              if (
-                response.status === 200 &&
-                response.data?.result === 'Succeeded'
-              ) {
-                // 待機してhome.htmlへ遷移
-                setTimeout(() => {
-                  window.location.href = 'home.html';
-                }, 1000);
-              } else {
-                errorMessage.value =
-                  response.data?.message || 'ログインに失敗しました。';
-                dialog.value = true;
-              }
-            } catch (err) {
-              console.error('ログインエラー:', err);
-              errorMessage.value =
-                'ログインエラー：' + (err.response?.data || err.message);
-              dialog.value = true;
-            } finally {
-              loading.value = false; // ローディングOFF
             }
-          };
+            );
+
+            console.log('ログインレスポンス:', response.data);
+
+            // ログイン成功判定
+            if (response.status === 200 && response.data?.result === 'Succeeded') {
+
+            // CreateSession API呼び出し
+            const sessionResponse = await axios.post(
+                'https://m3h-ookawa-containerapps-vnet.gentlerock-32477362.japaneast.azurecontainerapps.io/api/CREATESESSION',
+                {
+                UserId: userid.value,
+                UserName: response.data.userName, // LOGINUSERで返すNameフィールド名に合わせて
+                },
+                { withCredentials: true } // Cookie送受信用（CORS対応）
+            );
+
+            console.log('セッションレスポンス:', sessionResponse.data);
+
+            // セッション作成成功時
+            if (sessionResponse.status === 200 && sessionResponse.data?.result === 'Succeeded') {
+                // Cookieを保存（手動でも補完）
+                document.cookie = `session_id=${encodeURIComponent(sessionResponse.data.sessionId)}; path=/; secure; samesite=strict`;
+
+                console.log("Session ID:", sessionResponse.data.sessionId);
+
+                // home.htmlへ遷移
+                setTimeout(() => {
+                window.location.href = 'home.html';
+                }, 1000);
+            } else {
+                errorMessage.value = "セッションの生成に失敗しました。";
+                dialog.value = true;
+            }
+
+            } else {
+            errorMessage.value = response.data?.message || 'ログインに失敗しました。';
+            dialog.value = true;
+            }
+        } catch (err) {
+            console.error('ログインエラー:', err);
+            errorMessage.value = 'ログインエラー：' + (err.response?.data || err.message);
+            dialog.value = true;
+        } finally {
+            loading.value = false; // ローディングOFF
+        }
+        };
 
           // サインアップ画面へ遷移
           const goToSignup = () => {
