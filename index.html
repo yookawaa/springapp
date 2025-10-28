@@ -140,8 +140,6 @@
 
             // セッション作成成功時
             if (sessionResponse.status === 200 && sessionResponse.data?.result === 'Succeeded') {
-                // Cookieを保存（手動でも補完）
-                document.cookie = `session_id=${encodeURIComponent(sessionResponse.data.sessionId)}; path=/; secure; samesite=strict`;
 
                 console.log("Session ID:", sessionResponse.data.sessionId);
 
