@@ -118,7 +118,8 @@
             {
                 ID: userid.value,
                 Password: password.value,
-            }
+            },
+              { withCredentials: true } // ←これを追加
             );
 
             console.log('ログインレスポンス:', response.data);
