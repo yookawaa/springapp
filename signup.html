@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <title>ユーザー登録</title>
+
+    <!-- CDN読み込み -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script src="https://unpkg.com/vuetify@3.5.15/dist/vuetify.min.js"></script>
+    <link
+      href="https://unpkg.com/vuetify@3.5.15/dist/vuetify.min.css"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <div id="app">
+      <v-app>
+        <v-container>
+          <!-- タイトル -->
+          <v-row class="text-h4 mb-4" justify="center">ユーザー登録</v-row>
+
+          <!-- 入力フォーム -->
+          <v-row justify="center">
+            <v-col cols="12" sm="6" md="4">
+              <!-- 数字のみ入力可 -->
+              <v-text-field
+                v-model="userid"
+                label="ユーザーID"
+                outlined
+                persistent-hint
+              ></v-text-field>
+
+              <v-text-field
+                v-model="password"
+                label="パスワード"
+                type="password"
+                outlined
+              ></v-text-field>
+
+              <v-text-field
+                v-model="displayName"
+                label="表示名"
+                outlined
+              ></v-text-field>
+
+              <v-btn color="primary" class="mt-4" block @click="signup">
+                登録
+              </v-btn>
+
+              <v-btn variant="text" class="mt-2" block @click="goToLogin">
+                ログインに戻る
+              </v-btn>
+            </v-col>
+          </v-row>
+
+          <!-- エラーダイアログ -->
+          <v-dialog v-model="dialog" max-width="400">
+            <v-card>
+              <v-card-title class="headline">エラー</v-card-title>
+              <v-card-text>{{ errorMessage }}</v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="primary" variant="text" @click="dialog = false">
+                  閉じる
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+
+          <!-- 成功ダイアログ -->
+          <v-dialog v-model="successDialog" max-width="400">
+            <v-card>
+              <v-card-title class="headline">成功</v-card-title>
+              <v-card-text>{{ message }}</v-card-text>
+              <v-card-actions>
+                <v-spacer></v-spacer>
+                <v-btn color="primary" variant="text" @click="goToLogin">
+                  OK
+                </v-btn>
+              </v-card-actions>
+            </v-card>
+          </v-dialog>
+        </v-container>
+      </v-app>
+    </div>
+
+    <script>
+      const { createApp, ref } = Vue;
+      const { createVuetify } = Vuetify;
+      const vuetify = createVuetify();
+
+      const app = createApp({
+        setup() {
+          const userid = ref('');
+          const password = ref('');
+          const displayName = ref('');
+          const message = ref('');
+          const errorMessage = ref('');
+          const dialog = ref(false);
+          const successDialog = ref(false);
+
+          // サインアップ処理
+          const signup = async () => {
+            // 空欄チェック
+            if (!userid.value || !password.value || !displayName.value) {
+              errorMessage.value = '全ての項目を入力してください。';
+              dialog.value = true;
+              return;
+            }
+
+            // ユーザーIDが数字のみかチェック
+            const numberOnly = /^\d+$/;
+            if (!numberOnly.test(userid.value)) {
+              errorMessage.value = 'ユーザーIDは半角数字のみで入力してください。';
+              dialog.value = true;
+              return;
+            }
+
+            try {
+              const response = await axios.post('https://m3h-ookawa-containerapps-vnet.gentlerock-32477362.japaneast.azurecontainerapps.io/api/INSERTUSER', {
+                ID: userid.value,
+                Password: password.value,
+                Name: displayName.value,
+              });
+
+              // 成功・失敗に関係なくメッセージ表示
+              message.value = response.data;
+              successDialog.value = true;
+              errorMessage.value = '';
+            } catch (err) {
+              console.error('登録エラー:', err);
+              errorMessage.value =
+                '登録エラー：' + (err.response?.data || err.message);
+              dialog.value = true;
+            }
+          };
+
+          // ログイン画面に戻る
+          const goToLogin = () => {
+            window.location.href = 'index.html';
+          };
+
+          return {userid, password, displayName, message, errorMessage, dialog, successDialog, signup, goToLogin};
+        },
+      });
+
+      app.use(vuetify);
+      app.mount('#app');
+    </script>
+  </body>
+</html>
