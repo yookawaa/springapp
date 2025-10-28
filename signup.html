@@ -24,14 +24,14 @@
           <!-- 入力フォーム -->
           <v-row justify="center">
             <v-col cols="12" sm="6" md="4">
-              <!-- 数字のみ入力可 -->
+              <!-- ユーザーID（数字のみ） -->
               <v-text-field
                 v-model="userid"
                 label="ユーザーID"
                 outlined
-                persistent-hint
               ></v-text-field>
 
+              <!-- パスワード -->
               <v-text-field
                 v-model="password"
                 label="パスワード"
@@ -39,16 +39,36 @@
                 outlined
               ></v-text-field>
 
+              <!-- 表示名 -->
               <v-text-field
                 v-model="displayName"
                 label="表示名"
                 outlined
               ></v-text-field>
 
-              <v-btn color="primary" class="mt-4" block @click="signup">
-                登録
+              <!-- 登録ボタン -->
+              <v-btn
+                color="primary"
+                class="mt-4"
+                block
+                @click="signup"
+                :disabled="loading"
+              >
+                <template v-if="!loading">
+                  登録
+                </template>
+                <template v-else>
+                  <v-progress-circular
+                    indeterminate
+                    color="white"
+                    size="20"
+                    class="mr-2"
+                  ></v-progress-circular>
+                  登録中...
+                </template>
               </v-btn>
 
+              <!-- ログイン画面へ -->
               <v-btn variant="text" class="mt-2" block @click="goToLogin">
                 ログインに戻る
               </v-btn>
@@ -82,6 +102,18 @@
               </v-card-actions>
             </v-card>
           </v-dialog>
+
+          <!-- 全画面ローディング表示 -->
+          <v-dialog v-model="loading" persistent width="100">
+            <v-card class="pa-6 text-center">
+              <v-progress-circular
+                indeterminate
+                color="primary"
+                size="48"
+              ></v-progress-circular>
+              <div class="mt-3">登録処理中です...</div>
+            </v-card>
+          </v-dialog>
         </v-container>
       </v-app>
     </div>
@@ -100,10 +132,10 @@
           const errorMessage = ref('');
           const dialog = ref(false);
           const successDialog = ref(false);
+          const loading = ref(false); // ← 追加
 
           // サインアップ処理
           const signup = async () => {
-            // 空欄チェック
             if (!userid.value || !password.value || !displayName.value) {
               errorMessage.value = '全ての項目を入力してください。';
               dialog.value = true;
@@ -113,10 +145,13 @@
             // ユーザーIDが数字のみかチェック
             const numberOnly = /^\d+$/;
             if (!numberOnly.test(userid.value)) {
-              errorMessage.value = 'ユーザーIDは半角数字のみで入力してください。';
+              errorMessage.value =
+                'ユーザーIDは半角数字のみで入力してください。';
               dialog.value = true;
               return;
             }
+
+            loading.value = true; // ローディングON
 
             try {
               const response = await axios.post('https://m3h-ookawa-containerapps-vnet.gentlerock-32477362.japaneast.azurecontainerapps.io/api/INSERTUSER', {
@@ -125,15 +160,22 @@
                 Name: displayName.value,
               });
 
-              // 成功・失敗に関係なくメッセージ表示
-              message.value = response.data;
-              successDialog.value = true;
-              errorMessage.value = '';
+              // 成功時レスポンスをメッセージに表示
+              if (response.status === 200) {
+                message.value = response.data.message || response.data;
+                successDialog.value = true;
+              } else {
+                errorMessage.value =
+                  response.data.message || '登録に失敗しました。';
+                dialog.value = true;
+              }
             } catch (err) {
               console.error('登録エラー:', err);
               errorMessage.value =
                 '登録エラー：' + (err.response?.data || err.message);
               dialog.value = true;
+            } finally {
+              loading.value = false; // ローディングOFF
             }
           };
 
@@ -142,7 +184,18 @@
             window.location.href = 'index.html';
           };
 
-          return {userid, password, displayName, message, errorMessage, dialog, successDialog, signup, goToLogin};
+          return {
+            userid,
+            password,
+            displayName,
+            message,
+            errorMessage,
+            dialog,
+            successDialog,
+            loading,
+            signup,
+            goToLogin,
+          };
         },
       });
 
@@ -151,3 +204,4 @@
     </script>
   </body>
 </html>
+<!DOCTYPE html>
