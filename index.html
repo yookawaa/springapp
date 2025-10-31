@@ -126,7 +126,8 @@
                 {
                   id: userid.value,
                   password: password.value,
-                }
+                },
+                { withCredentials: true } // ★ クロスサイトCookieを許可
               );
 
               console.log("レスポンス:", res.data);
