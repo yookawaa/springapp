@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title>ログイン</title>
 
-    <!-- ✅ CDNは1回ずつだけ読み込む -->
+    <!-- ✅ CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
     <script src="https://unpkg.com/vuetify@3.5.15/dist/vuetify.min.js"></script>
@@ -13,7 +13,6 @@
       rel="stylesheet"
     />
 
-    <!-- ✅ 軽いCSS調整（任意） -->
     <style>
       body {
         background-color: #fafafa;
@@ -22,7 +21,6 @@
   </head>
 
   <body>
-    <!-- ✅ Vueのマウントターゲット -->
     <div id="app">
       <v-app>
         <v-container>
@@ -76,7 +74,16 @@
               <v-card-text>{{ message }}</v-card-text>
               <v-card-actions>
                 <v-spacer></v-spacer>
-                <v-btn color="primary" variant="text" @click="dialog = false">
+                <!-- ★ OKボタンを追加 -->
+                <v-btn
+                  color="primary"
+                  variant="text"
+                  v-if="showOkButton"
+                  @click="goToHome"
+                >
+                  OK
+                </v-btn>
+                <v-btn color="grey" variant="text" @click="dialog = false">
                   閉じる
                 </v-btn>
               </v-card-actions>
@@ -86,7 +93,6 @@
       </v-app>
     </div>
 
-    <!-- ✅ VueコードはDOMの後で実行（重要） -->
     <script>
       const { createApp, ref } = Vue;
       const { createVuetify } = Vuetify;
@@ -99,6 +105,7 @@
           const loading = ref(false);
           const dialog = ref(false);
           const message = ref("");
+          const showOkButton = ref(false); // ★ OKボタン表示制御
 
           // =============================
           // ログイン処理
@@ -107,11 +114,13 @@
             if (!userid.value || !password.value) {
               message.value = "ユーザーIDとパスワードを入力してください。";
               dialog.value = true;
+              showOkButton.value = false;
               return;
             }
 
             loading.value = true;
             try {
+              // 1️⃣ ログインAPI呼び出し
               const res = await axios.post(
                 "https://m3h-ookawa-containerapps-vnet.gentlerock-32477362.japaneast.azurecontainerapps.io/api/LOGIN",
                 {
@@ -122,17 +131,29 @@
 
               console.log("レスポンス:", res.data);
 
+              // 2️⃣ 成功したらセッション作成APIを呼ぶ
               if (typeof res.data === "string" && res.data.includes("成功")) {
-                message.value = res.data;
+                await axios.post(
+                  "https://m3h-ookawa-containerapps-vnet.gentlerock-32477362.japaneast.azurecontainerapps.io/api/CREATESESSION?userId=" +
+                    encodeURIComponent(userid.value),
+                  {},
+                  { withCredentials: true }
+                );
+
+                message.value =
+                  "ログイン成功！セッションを作成しました。\n\n👉 F12 → Application → Cookies で JSESSIONID を確認してください。";
                 dialog.value = true;
-                setTimeout(() => (window.location.href = "home.html"), 1000);
+                showOkButton.value = true; // ★ OKボタンを表示
               } else {
                 message.value = res.data || "ログインに失敗しました。";
                 dialog.value = true;
+                showOkButton.value = false;
               }
             } catch (err) {
-              message.value = "通信エラー：" + (err.response?.data || err.message);
+              message.value =
+                "通信エラー：" + (err.response?.data || err.message);
               dialog.value = true;
+              showOkButton.value = false;
             } finally {
               loading.value = false;
             }
@@ -145,7 +166,24 @@
             window.location.href = "signup.html";
           };
 
-          return { userid, password, loading, dialog, message, login, goToSignup };
+          // =============================
+          // OKを押したらHomeへ
+          // =============================
+          const goToHome = () => {
+            window.location.href = "home.html";
+          };
+
+          return {
+            userid,
+            password,
+            loading,
+            dialog,
+            message,
+            showOkButton,
+            login,
+            goToSignup,
+            goToHome,
+          };
         },
       })
         .use(vuetify)
