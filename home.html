@@ -1,111 +1,78 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="en">
   <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8">
     <title>SELECTとINSERT</title>
-
-    <!-- Vuetify CSS -->
     <link
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/vuetify@3/dist/vuetify.min.css"
     />
-
-    <!-- スタイル調整 -->
-    <style>
-      body {
-        background-color: #f5f5f5;
-      }
-      .title {
-        font-weight: bold;
-        text-align: center;
-      }
-    </style>
   </head>
 
   <body>
-    <!-- Vueマウントポイント -->
+    <!-- Vueで指定された"app"要素 -->
     <div id="app">
       <v-app>
         <v-main>
           <v-container>
-            <!-- タイトル -->
-            <v-row class="text-h4 mb-6 mt-6" justify="center">
+            <v-row class="text-h3 mb-3 mt-3" justify="center">
               APIに接続してみよう
             </v-row>
 
-            <!-- 入力欄 -->
-            <v-row class="mb-3" align="center" justify="center">
-              <v-col cols="12" sm="4" md="3">
+            <v-row class="mb-3 mt-3" align="center" justify="center">
+              <v-col cols="4">
                 <v-text-field
+                  class="ml-6 mr-6"
                   v-model="ID"
                   label="IDを入力"
-                  placeholder="例: 1"
+                  placeholder="IDを入力…"
                   outlined
-                  clearable
                 ></v-text-field>
               </v-col>
 
-              <v-col cols="12" sm="6" md="4">
+              <v-col cols="6">
                 <v-text-field
+                  class="ml-6 mr-6"
                   v-model="Name"
                   label="Nameを入力"
-                  placeholder="例: 山田太郎"
+                  placeholder="Nameを入力…"
                   outlined
-                  clearable
                 ></v-text-field>
-              </v-col>
-
-              <v-col cols="12" sm="2" class="text-center">
-                <v-btn
-                  color="primary"
-                  dark
-                  class="mt-2"
-                  @click="addData"
-                >
-                  DBに登録
-                </v-btn>
               </v-col>
             </v-row>
 
-            <!-- SELECTボタン -->
+            <v-row class="mb-3 mt-3" align="center" justify="center">
+              入力内容　ID: {{ ID }} Name: {{ Name }}
+              <v-btn @click="addData" dark small color="indigo" class="ml-4">
+                DBに登録
+              </v-btn>
+            </v-row>
+
             <v-row class="mb-3 mt-3" justify="center">
-              <v-btn
-                color="secondary"
-                variant="outlined"
-                rounded
-                @click="readData"
-              >
+              <v-btn @click="readData" rounded>
                 現在の登録内容を表示する
               </v-btn>
             </v-row>
 
-            <!-- 結果表示 -->
             <v-row
               v-for="(data, index) in dataList"
               :key="index"
-              justify="center"
               class="mb-2"
+              justify="center"
             >
-              <v-col cols="8">
-                <v-card elevation="1" class="pa-2">
-                  <v-card-text>
-                    <strong>ID:</strong> {{ data.ID }}
-                    <strong>Name:</strong> {{ data.Name }}
-                  </v-card-text>
-                </v-card>
-              </v-col>
+              ID: {{ data.ID }}, Name: {{ data.Name }}
             </v-row>
           </v-container>
         </v-main>
       </v-app>
     </div>
 
-    <!-- Vue / Vuetify / Axios -->
+    <!-- Vue / Vuetify / Axios 読み込み -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vuetify@3/dist/vuetify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 
-    <!-- script.js（Vueのメインロジック） -->
+    <!-- 外部スクリプト -->
     <script src="script.js"></script>
   </body>
 </html>
